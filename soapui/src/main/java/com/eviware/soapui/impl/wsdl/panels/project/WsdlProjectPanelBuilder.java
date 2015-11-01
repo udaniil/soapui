@@ -50,6 +50,7 @@ public class WsdlProjectPanelBuilder extends EmptyPanelBuilder<WsdlProject> {
                 table.addProperty("Script Language", "defaultScriptLanguage",
                         SoapUIScriptEngineRegistry.getAvailableEngineIds());
                 table.addProperty("Hermes Config", "hermesConfig", true);
+                table.addProperty("Project Splitted", "projectSplitted", JPropertiesTable.BOOLEAN_OPTIONS);
             }
         } else {
             table.addProperty("File", "path");
