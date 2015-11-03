@@ -43,8 +43,15 @@ public class SaveProjectAsAction extends AbstractSoapUIAction<WsdlProject> {
             if (path == null) {
                 project.save();
             } else {
-                File file = UISupport.getFileDialogs().saveAs(this, "Select soapui project file", "xml", "XML",
-                        new File(path));
+                boolean isDirectory = new File(project.getPath()).isDirectory();
+                File file;
+
+                if (isDirectory) {
+                    file = UISupport.getFileDialogs().saveAsDirectory(this, "Select soapui project directory", new File(new File(path).getParent()));
+                } else {
+                    file = UISupport.getFileDialogs().saveAs(this, "Select soapui project file", "xml", "XML", new File(path));
+                }
+
                 if (file == null) {
                     return;
                 }

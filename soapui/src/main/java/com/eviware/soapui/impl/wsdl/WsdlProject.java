@@ -100,6 +100,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -108,6 +109,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -298,7 +300,19 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
             UrlWsdlLoader loader = new UrlWsdlLoader(file.toString(), this);
             loader.setUseWorker(false);
             InputStream inputStream = loader.load();
+            boolean isDirectory = Paths.get(file.toURI()).toFile().isDirectory();
+            if (isDirectory) {
+                SplittedProject splittedProject = new SplittedProject();
+                splittedProject.prepareLoad(Paths.get(file.toURI()).toFile());
+                inputStream = new ByteArrayInputStream(splittedProject.loadProject().getBytes("UTF-8"));
+            }
             loadProjectFromInputStream(inputStream);
+
+            if (isDirectory)
+                getSettings().setBoolean(WsdlSettings.PROJECT_SPLITTED, true);
+            else
+                getSettings().setBoolean(WsdlSettings.PROJECT_SPLITTED, false);
+
             log.info("Loaded project from [" + file.toString() + "]");
         } catch (Exception e) {
             if (e instanceof XmlException) {
@@ -688,9 +702,11 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
             while (projectFile == null
                     || (projectFile.exists() && !UISupport.confirm("File [" + projectFile.getName() + "] exists, overwrite?",
                     "Overwrite File?"))) {
-
-                projectFile = UISupport.getFileDialogs().saveAs(this, "Save project " + getName(), XML_EXTENSION, XML_FILE_TYPE,
-                        new File(tempPath));
+                if (getSettings().getBoolean(WsdlSettings.PROJECT_SPLITTED)) {
+                    projectFile = UISupport.getFileDialogs().saveAsDirectory(this, "Save project " + getName(), new File(tempPath));
+                } else {
+                    projectFile = UISupport.getFileDialogs().saveAs(this, "Save project " + getName(), XML_EXTENSION, XML_FILE_TYPE, new File(tempPath));
+                }
 
                 if (projectFile == null) {
                     return SaveStatus.CANCELLED;
@@ -700,6 +716,22 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
 
         if (projectFile == null) {
             projectFile = createFile(path);
+        }
+
+        if (projectFile.isFile() && getSettings().getBoolean(WsdlSettings.PROJECT_SPLITTED))
+        {
+            // convert single file project to splitted
+            UISupport.showInfoMessage("You are going to convert single file project into splitted project. Choose a directory for splitted project");
+            projectFile = UISupport.getFileDialogs().saveAsDirectory(this, "Choose a directory", null);
+            if (projectFile == null)
+                return SaveStatus.CANCELLED;
+        } else if (projectFile.isDirectory() && !getSettings().getBoolean(WsdlSettings.PROJECT_SPLITTED))
+        {
+            // convert splitted project to single file project
+            UISupport.showInfoMessage("You are going to convert splitted project into single file project. Choose a file for single file project");
+            projectFile = UISupport.getFileDialogs().saveAs(this, "Choose a file", "xml", "xml", new File("myfile.xml"));
+            if (projectFile == null)
+                return SaveStatus.CANCELLED;
         }
 
         while (projectFile.exists() && !projectFile.canWrite()) {
@@ -718,7 +750,6 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
 
             }
         }
-
 
         if (projectFileModified(projectFile)) {
             if (!UISupport.confirm("Project file for [" + getName() + "] has been modified externally, overwrite?",
@@ -809,13 +840,21 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
             projectDocument.save(tempOut, options);
             tempOut.close();
 
-            if (getSettings().getBoolean(UISettings.LINEBREAK)) {
+            if (getSettings().getBoolean(UISettings.LINEBREAK) && !getSettings().getBoolean(WsdlSettings.PROJECT_SPLITTED)) {
                 normalizeLineBreak(projectFile, tempFile);
             } else {
-                // now save it for real
-                FileOutputStream projectOut = new FileOutputStream(projectFile);
-                projectDocument.save(projectOut, options);
-                projectOut.close();
+                if (getSettings().getBoolean(WsdlSettings.PROJECT_SPLITTED))
+                {
+                    // split project and save
+                    SplittedProject splittedProject = new SplittedProject();
+                    splittedProject.prepareSave(projectFile, projectDocument.xmlText());
+                    splittedProject.saveProject();
+                } else {
+                    // save project as a single file
+                    FileOutputStream projectOut = new FileOutputStream(projectFile);
+                    projectDocument.save(projectOut, options);
+                    projectOut.close();
+                }
             }
 
             // delete tempFile here so we have it as backup in case second save fails
@@ -1140,6 +1179,14 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
 
     public void setCacheDefinitions(boolean cacheDefinitions) {
         getSettings().setBoolean(WsdlSettings.CACHE_WSDLS, cacheDefinitions);
+    }
+
+    public boolean isProjectSplitted() {
+        return getSettings().getBoolean(WsdlSettings.PROJECT_SPLITTED);
+    }
+
+    public void setProjectSplitted(boolean projectSplitted) {
+        getSettings().setBoolean(WsdlSettings.PROJECT_SPLITTED, projectSplitted);
     }
 
     public SaveStatus saveAs(String fileName) throws IOException {

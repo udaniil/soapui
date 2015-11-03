@@ -19,6 +19,7 @@ package com.eviware.soapui.impl.wsdl.actions.project;
 import java.io.File;
 
 import com.eviware.soapui.impl.wsdl.WsdlProject;
+import com.eviware.soapui.settings.WsdlSettings;
 import com.eviware.soapui.support.SoapUIException;
 import com.eviware.soapui.support.UISupport;
 import com.eviware.soapui.support.action.support.AbstractSoapUIAction;
@@ -47,8 +48,12 @@ public class ReloadProjectAction extends AbstractSoapUIAction<WsdlProject> {
                 }
             }
         } else {
-            File file = UISupport.getFileDialogs().open(this, "Reload Project", ".xml", "SoapUI Project Files (*.xml)",
-                    project.getPath());
+            File file;
+            if (project.getSettings().getBoolean(WsdlSettings.PROJECT_SPLITTED)) {
+                file = UISupport.getFileDialogs().openDirectory(this, "Reload Project", new File(new File(project.getPath()).getParent()));
+            } else {
+                file = UISupport.getFileDialogs().open(this, "Reload Project", ".xml", "SoapUI Project Files (*.xml)", project.getPath());
+            }
             if (file != null) {
                 try {
                     project.reload(file.getAbsolutePath());

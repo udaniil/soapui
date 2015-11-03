@@ -19,6 +19,7 @@ package com.eviware.soapui.support;
 import com.eviware.soapui.impl.wsdl.support.HelpUrls;
 import com.eviware.soapui.support.editor.inspectors.attachments.ContentTypeHandler;
 import com.eviware.soapui.support.types.StringToStringMap;
+import groovy.util.AntBuilder;
 import junit.framework.ComparisonFailure;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -325,20 +326,25 @@ public class Tools {
             }
         }
 
-        BufferedInputStream in = new BufferedInputStream(new FileInputStream(source));
-        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(target));
+        if (source.isDirectory()) {
+            FileUtils.copyDirectory(source, target);
+            bytes = (int) FileUtils.sizeOfDirectory(target);
+        } else {
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(source));
+            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(target));
 
-        int read = in.read(copyBuffer);
-        while (read != -1) {
-            if (read > 0) {
-                out.write(copyBuffer, 0, read);
-                bytes += read;
+            int read = in.read(copyBuffer);
+            while (read != -1) {
+                if (read > 0) {
+                    out.write(copyBuffer, 0, read);
+                    bytes += read;
+                }
+                read = in.read(copyBuffer);
             }
-            read = in.read(copyBuffer);
-        }
 
-        in.close();
-        out.close();
+            in.close();
+            out.close();
+        }
 
         return bytes;
     }

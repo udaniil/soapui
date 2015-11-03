@@ -28,6 +28,9 @@ public interface WsdlSettings {
     @Setting(name = "Cache WSDLs", description = "caches and associates WSDLs locally for offline access and improved performance", type = SettingType.BOOLEAN)
     public final static String CACHE_WSDLS = WsdlSettings.class.getSimpleName() + "@" + "cache-wsdls";
 
+    @Setting(name = "Splitted Project", description = "Project is splitted", type = SettingType.BOOLEAN)
+    public final static String PROJECT_SPLITTED = WsdlSettings.class.getSimpleName() + "@" + "project-splitted";
+
     @Setting(name = "Sample Values", description = "generate example values in new requests", type = SettingType.BOOLEAN)
     public final static String XML_GENERATION_TYPE_EXAMPLE_VALUE = WsdlSettings.class.getSimpleName() + "@"
             + "xml-generation-type-example-value";
