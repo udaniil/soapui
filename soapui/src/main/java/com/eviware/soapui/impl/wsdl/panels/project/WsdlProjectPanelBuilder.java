@@ -51,6 +51,7 @@ public class WsdlProjectPanelBuilder extends EmptyPanelBuilder<WsdlProject> {
                         SoapUIScriptEngineRegistry.getAvailableEngineIds());
                 table.addProperty("Hermes Config", "hermesConfig", true);
                 table.addProperty("Project Splitted", "projectSplitted", JPropertiesTable.BOOLEAN_OPTIONS);
+                table.addProperty("Select Environment", "selectedEnvironment", project.getAvailableEnvironments());
             }
         } else {
             table.addProperty("File", "path");

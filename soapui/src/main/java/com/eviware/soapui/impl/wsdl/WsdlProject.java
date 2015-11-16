@@ -86,6 +86,7 @@ import com.eviware.soapui.support.resolver.ResolveContext;
 import com.eviware.soapui.support.resolver.ResolveDialog;
 import com.eviware.soapui.support.scripting.SoapUIScriptEngine;
 import com.eviware.soapui.support.scripting.SoapUIScriptEngineRegistry;
+import com.eviware.soapui.support.types.StringList;
 import com.eviware.soapui.support.types.StringToObjectMap;
 import com.eviware.soapui.support.xml.XmlUtils;
 import org.apache.commons.ssl.OpenSSL;
@@ -183,6 +184,9 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
 
     protected final static Logger log = Logger.getLogger(WsdlProject.class);
 
+    private String selectedEnvironment = new String("");
+    private String[] availableEnvironments;
+
     public WsdlProject() throws XmlException, IOException, SoapUIException {
         this((WorkspaceImpl) null);
     }
@@ -192,7 +196,7 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
     }
 
     public WsdlProject(String projectFile, String projectPassword) {
-        this(projectFile, null, true, null, projectPassword);
+        this(projectFile, null, true, null, projectPassword, "");
     }
 
     public WsdlProject(WorkspaceImpl workspace) {
@@ -200,11 +204,11 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
     }
 
     public WsdlProject(String path, WorkspaceImpl workspace) {
-        this(path, workspace, true, null, null);
+        this(path, workspace, true, null, null, "");
     }
 
     public WsdlProject(String path, WorkspaceImpl workspace, boolean open, String tempName,
-                       String projectPassword) {
+                       String projectPassword, String environment) {
         super(null, workspace, ICON_NAME);
 
         this.workspace = workspace;
@@ -219,7 +223,7 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
                 File file = new File(path.trim());
                 if (file.exists()) {
                     try {
-                        loadProject(file.toURI().toURL());
+                        loadProject(file.toURI().toURL(), environment);
                         lastModified = file.lastModified();
                     } catch (MalformedURLException e) {
                         SoapUI.logError(e);
@@ -233,7 +237,7 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
                         }
 
                         remote = true;
-                        loadProject(new URL(path));
+                        loadProject(new URL(path), environment);
                     } catch (MalformedURLException e) {
                         SoapUI.logError(e);
                         disabled = true;
@@ -293,7 +297,7 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         return endpointSupport;
     }
 
-    public void loadProject(URL file) throws SoapUIException {
+    public void loadProject(URL file, String environment) throws SoapUIException {
         try {
             UISupport.setHourglassCursor();
 
@@ -304,10 +308,18 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
             if (isDirectory) {
                 SplittedProject splittedProject = new SplittedProject();
                 splittedProject.prepareLoad(Paths.get(file.toURI()).toFile());
-                inputStream = new ByteArrayInputStream(splittedProject.loadProject().getBytes("UTF-8"));
+                availableEnvironments = splittedProject.getEnvironments();
+                if (environment == "") {
+                    if (availableEnvironments.length > 0)
+                        selectedEnvironment = availableEnvironments[0];     // select 1st environment by default
+                    else
+                        selectedEnvironment = "";
+                } else
+                    selectedEnvironment = environment;
+                inputStream = new ByteArrayInputStream(splittedProject.loadProject(getSelectedEnvironment()).getBytes("UTF-8"));
             }
             loadProjectFromInputStream(inputStream);
-
+            //this.projectDocument.getSoapuiProject().getProperties().
             if (isDirectory)
                 getSettings().setBoolean(WsdlSettings.PROJECT_SPLITTED, true);
             else
@@ -848,7 +860,7 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
                     // split project and save
                     SplittedProject splittedProject = new SplittedProject();
                     splittedProject.prepareSave(projectFile, projectDocument.xmlText());
-                    splittedProject.saveProject();
+                    splittedProject.saveProject(selectedEnvironment);
                 } else {
                     // save project as a single file
                     FileOutputStream projectOut = new FileOutputStream(projectFile);
@@ -1187,6 +1199,29 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
 
     public void setProjectSplitted(boolean projectSplitted) {
         getSettings().setBoolean(WsdlSettings.PROJECT_SPLITTED, projectSplitted);
+    }
+
+    public String getSelectedEnvironment() {
+        //return getSettings().getString(WsdlSettings.SELECTED_ENVIRONMENT, "zxc");
+        return selectedEnvironment;
+    }
+
+    public void setSelectedEnvironment(String selectedEnvironment) {
+        //getSettings().setString(WsdlSettings.SELECTED_ENVIRONMENT, "Testtest");
+        this.selectedEnvironment = selectedEnvironment;
+        try {
+            reload();
+        } catch (SoapUIException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String[] getAvailableEnvironments() {
+        // if no available environments then create dummy environment
+        if (availableEnvironments == null)
+            availableEnvironments = new String[1];
+
+        return availableEnvironments;
     }
 
     public SaveStatus saveAs(String fileName) throws IOException {

@@ -38,7 +38,7 @@ public class WsdlProjectFactory implements ProjectFactory<WsdlProject> {
     }
 
     public WsdlProject createNew(String projectFile, String projectPassword) {
-        return new WsdlProject(projectFile, (WorkspaceImpl) null, true, null, projectPassword);
+        return new WsdlProject(projectFile, (WorkspaceImpl) null, true, null, projectPassword, "");
     }
 
     public WsdlProject createNew(Workspace workspace) {
@@ -49,13 +49,18 @@ public class WsdlProjectFactory implements ProjectFactory<WsdlProject> {
         return new WsdlProject(path, (WorkspaceImpl) workspace);
     }
 
+    @Override
+    public WsdlProject createNew(String path, Workspace workspace, boolean open, String tempName, String projectPassword, String environment) {
+        return new WsdlProject(path, (WorkspaceImpl) workspace, open, tempName, projectPassword, environment);
+    }
+
     public WsdlProject createNew(String path, Workspace workspace, boolean create) {
-        return new WsdlProject(path, (WorkspaceImpl) workspace, true, null, null);
+        return new WsdlProject(path, (WorkspaceImpl) workspace, true, null, null, "");
     }
 
     public WsdlProject createNew(String path, Workspace workspace, boolean open, String tempName,
                                  String projectPassword) {
-        return new WsdlProject(path, (WorkspaceImpl) workspace, open, tempName, projectPassword);
+        return new WsdlProject(path, (WorkspaceImpl) workspace, open, tempName, projectPassword, "");
     }
 
     @Override

@@ -156,7 +156,7 @@ public class RestRequestTest {
         saveFile.deleteOnExit();
         project.saveIn(saveFile);
         WsdlProject loadedProject = new WsdlProject(saveFile.getAbsolutePath());
-        loadedProject.loadProject(saveFile.toURL());
+        loadedProject.loadProject(saveFile.toURL(), "");
         RestRequest loadedRequest = (RestRequest) loadedProject.getInterfaceAt(0).getOperationAt(0).getRequestAt(0);
         assertThat(loadedRequest.getRequestContent(), is(originalContent));
     }

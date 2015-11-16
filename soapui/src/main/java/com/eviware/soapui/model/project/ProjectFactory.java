@@ -36,7 +36,7 @@ public interface ProjectFactory<T extends Project> {
     public T createNew(String path, Workspace workspace);
 
     public T createNew(String path, Workspace workspace, boolean open, String tempName,
-                       String projectPassword);
+                       String projectPassword, String environment);
 
     public T createNew(InputStream inputStream, WorkspaceImpl workspace);
 }
