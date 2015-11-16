@@ -151,7 +151,7 @@ public class WorkspaceImpl extends AbstractModelItem implements Workspace {
                 try {
                     WsdlProject project = (WsdlProject) ProjectFactoryRegistry.getProjectFactory("wsdl").createNew(str,
                             this, !closeOnStartup && wsc.getStatus() != Status.CLOSED && wsc.getType() != Type.REMOTE,
-                            wsc.getName(), null);
+                            wsc.getName(), null, "");
 
                     projectList.add(project);
                 } catch (Exception e) {
@@ -486,7 +486,7 @@ public class WorkspaceImpl extends AbstractModelItem implements Workspace {
         String tempName = project.getName();
         project.release();
         project = ProjectFactoryRegistry.getProjectFactory("wsdl").createNew(project.getPath(), this,
-                true, tempName, null);
+                true, tempName, null, ((WsdlProject) project).getSelectedEnvironment());
         projectList.add(ix, project);
 
         fireProjectAdded(project);
@@ -564,7 +564,7 @@ public class WorkspaceImpl extends AbstractModelItem implements Workspace {
 
         try {
             project = ProjectFactoryRegistry.getProjectFactory(WsdlProjectFactory.WSDL_TYPE).createNew(
-                    project.getPath(), this, false, name, null);
+                    project.getPath(), this, false, name, null, "");
             ((WsdlProject) project).setEncryptionStatus(oldProjectEncrypt);
             projectList.add(ix, project);
             fireProjectAdded(project);

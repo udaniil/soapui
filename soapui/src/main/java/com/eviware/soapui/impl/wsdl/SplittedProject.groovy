@@ -7,14 +7,17 @@ import static groovy.xml.XmlUtil.serialize
 
 class SplittedProject {
     private File startDir
-    Node projectRoot
+    private Node projectRoot
+    private String environment
 
     def prepareSave(File path, String xmlString) {
         startDir = path			// working directory
         projectRoot = new XmlParser().parseText(xmlString)		// projectRoot contains parsed XML
     }
 
-    def saveProject() {
+    def saveProject(String environment) {
+        this.environment = environment
+
         try {
             if (!startDir.exists())
                 startDir.mkdir()				// delete directory and create new
@@ -66,7 +69,12 @@ class SplittedProject {
         node.children().each {
             if (it.children().size() > 0) {     // skip empty nodes
                 if (it.@name == null) { // if this is a property, settings, teststep, method, then write it into file
-                    def file = new File(currentDir.getCanonicalPath() + File.separator + strToSafeName(it.name().localPart) + ".xml")
+                    def file
+                    if (it.name().localPart == "properties" && currentDir == startDir) {
+                        file = new File(currentDir.getCanonicalPath() + File.separator + environment + "_" + strToSafeName(it.name().localPart) + ".xml")
+                    } else {
+                        file = new File(currentDir.getCanonicalPath() + File.separator + strToSafeName(it.name().localPart) + ".xml")
+                    }
                     if (file.exists()) {
                         def fileNode = new XmlParser().parseText(file.text)
                         String s1 = fileNode.toString()
@@ -96,7 +104,7 @@ class SplittedProject {
     def deleteFilesNotInList(File currentDir, ArrayList<String> listFiles, ArrayList<String> listDirs) {
         currentDir.eachFile(FileType.FILES) {
             def fileName = it.getName()
-            if (!listFiles.contains(fileName))
+            if (!listFiles.contains(fileName) && !(currentDir == startDir && fileName.matches(~/.*_properties.xml/)))
                 it.delete()
         }
 
@@ -113,8 +121,10 @@ class SplittedProject {
         projectRoot = null
     }
 
-    String loadProject()
+    String loadProject(String environment)
     {
+        this.environment = environment
+
         try {
             projectRoot = recursiveRead(startDir)	// contruct xml in memory
             return serialize(projectRoot).toString()
@@ -124,6 +134,16 @@ class SplittedProject {
         }
     }
 
+    String[] getEnvironments()
+    {
+        ArrayList<String> environments = new ArrayList<>()
+
+        startDir.eachFileMatch(~/.*_properties.xml/) {
+            environments.add(it.getName().split("_properties.xml")[0])
+        }
+
+        return environments.toArray()
+    }
     // main function that reads files from filesystem and constructs Parsed XML in memory
     def recursiveRead(File currentDir) {
         Node currentNode = null
@@ -138,7 +158,12 @@ class SplittedProject {
 
         nodeHeader.children().each {
             if (it.@name == null) { // if this is a property, settings, teststep, method, then write it into file
-                def file = new File(currentDir.getCanonicalPath() + File.separator + strToSafeName(it.name().localPart) + ".xml")
+                def file
+                if (it.name().localPart == "properties" && currentDir == startDir) {
+                    file = new File(currentDir.getCanonicalPath() + File.separator + environment + "_" + strToSafeName(it.name().localPart) + ".xml")
+                } else {
+                    file = new File(currentDir.getCanonicalPath() + File.separator + strToSafeName(it.name().localPart) + ".xml")
+                }
                 if (file.exists()) {
                     def fileNode = new XmlParser().parseText(file.text)
                     currentNode.append(fileNode)
