@@ -41,6 +41,10 @@ public class WsdlProjectFactory implements ProjectFactory<WsdlProject> {
         return new WsdlProject(projectFile, (WorkspaceImpl) null, true, null, projectPassword, "");
     }
 
+    public WsdlProject createNew(String projectFile, String projectPassword, String environment) {
+        return new WsdlProject(projectFile, (WorkspaceImpl) null, true, null, projectPassword, environment);
+    }
+
     public WsdlProject createNew(Workspace workspace) {
         return new WsdlProject((String) null, (WorkspaceImpl) workspace);
     }

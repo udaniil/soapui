@@ -34,6 +34,7 @@ public class SoapUIMockAsWarGenerator extends AbstractSoapUIRunner {
     private boolean enableWebUI;
     private String localEndpoint;
     private String warFile;
+    private String projectEnvironment;
 
     public SoapUIMockAsWarGenerator() {
         super(TITLE);
@@ -181,5 +182,10 @@ public class SoapUIMockAsWarGenerator extends AbstractSoapUIRunner {
 
     public void setWarFile(String warFile) {
         this.warFile = warFile;
+    }
+
+    @Override
+    public String getProjectEnvironment() {
+        return projectEnvironment;
     }
 }
