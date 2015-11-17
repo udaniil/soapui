@@ -69,6 +69,7 @@ public class SoapUILoadTestRunner extends AbstractSoapUITestRunner implements Lo
     private boolean saveAfterRun;
 
     public static String TITLE = "SoapUI " + SoapUI.SOAPUI_VERSION + " LoadTest Runner";
+    private String projectEnvironment;
 
     /**
      * Runs the loadtests in the specified soapUI project file, see SoapUI xdocs
@@ -479,5 +480,10 @@ public class SoapUILoadTestRunner extends AbstractSoapUITestRunner implements Lo
     }
 
     public void loadTestStopped(LoadTestRunner loadTestRunner, LoadTestRunContext context) {
+    }
+
+    @Override
+    public String getProjectEnvironment() {
+        return projectEnvironment;
     }
 }

@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface ProjectFactory<T extends Project> {
-    public T createNew() throws XmlException, IOException, SoapUIException;
+    public T createNew(String projectFile, String projectPassword, String projectEnvironment) throws XmlException, IOException, SoapUIException;
 
     public T createNew(String path) throws XmlException, IOException, SoapUIException;
 

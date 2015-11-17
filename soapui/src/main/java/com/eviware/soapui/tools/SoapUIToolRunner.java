@@ -52,6 +52,7 @@ public class SoapUIToolRunner extends AbstractSoapUIRunner implements ToolHost, 
     private String projectPassword;
 
     public static String TITLE = "SoapUI " + SoapUI.SOAPUI_VERSION + " Tool Runner";
+    private String projectEnvironment;
 
     /**
      * Runs the specified tool in the specified soapUI project file, see SoapUI
@@ -232,5 +233,10 @@ public class SoapUIToolRunner extends AbstractSoapUIRunner implements ToolHost, 
 
     public void setProjectPassword(String projectPassword) {
         this.projectPassword = projectPassword;
+    }
+
+    @Override
+    public String getProjectEnvironment() {
+        return projectEnvironment;
     }
 }

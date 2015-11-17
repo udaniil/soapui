@@ -53,6 +53,7 @@ public class SoapUIMockServiceRunner extends AbstractSoapUIRunner {
     private boolean saveAfterRun;
 
     public static String TITLE = "SoapUI " + SoapUI.SOAPUI_VERSION + " MockService Runner";
+    private String projectEnvironment;
 
     /**
      * Runs the specified MockService in the specified SoapUI project file, see
@@ -200,6 +201,11 @@ public class SoapUIMockServiceRunner extends AbstractSoapUIRunner {
         } catch (Exception e) {
             SoapUI.logError(e);
         }
+    }
+
+    @Override
+    public String getProjectEnvironment() {
+        return projectEnvironment;
     }
 
     public class LogListener extends MockRunListenerAdapter {

@@ -104,6 +104,7 @@ public class SoapUITestCaseRunner extends AbstractSoapUITestRunner {
     private String projectPassword;
     private boolean saveAfterRun;
     private TestCaseRunLogReport testCaseRunLogReport;
+    private String projectEnvironment;
 
     /**
      * Runs the tests in the specified soapUI project file, see SoapUI xdocs for
@@ -327,9 +328,10 @@ public class SoapUITestCaseRunner extends AbstractSoapUITestRunner {
         assertions.clear();
 
         String projectFile = getProjectFile();
+        String projectEnvironment = getProjectEnvironment();
 
         WsdlProject project = (WsdlProject) ProjectFactoryRegistry.getProjectFactory("wsdl").createNew(projectFile,
-                getProjectPassword());
+                getProjectPassword(), projectEnvironment);
 
         if (project.isDisabled()) {
             throw new Exception("Failed to load SoapUI project file [" + projectFile + "]");
@@ -342,7 +344,7 @@ public class SoapUITestCaseRunner extends AbstractSoapUITestRunner {
             testCaseRunLogReport = new TestCaseRunLogReport(getAbsoluteOutputFolder(project));
         }
 
-        log.info("Running SoapUI tests in project [" + project.getName() + "]");
+        log.info("Running SoapUI tests in project [" + project.getName() + "] and environment [" + project.getSelectedEnvironment() + "]");
 
         long startTime = System.nanoTime();
 

@@ -54,6 +54,7 @@ public abstract class AbstractSoapUIRunner implements CmdLineRunner {
 
     private boolean groovyLogInitialized;
     private String projectFile;
+    private String projectEnvironment;
     protected final Logger log = Logger.getLogger(getClass());
     private String settingsFile;
     private String soapUISettingsPassword;
@@ -136,21 +137,21 @@ public abstract class AbstractSoapUIRunner implements CmdLineRunner {
         CommandLineParser parser = new PosixParser();
         CommandLine cmd = parser.parse(options, args);
 
-
         if (requiresProjectArgument(cmd)) {
             args = cmd.getArgs();
 
-            if (args.length != 1) {
+            if (args.length != 2) {
                 if (printHelp) {
                     HelpFormatter formatter = new HelpFormatter();
-                    formatter.printHelp(options.getRunnerName() + " [options] <soapui-project-file>", options);
+                    formatter.printHelp(options.getRunnerName() + " [options] <soapui-project-file> <environment-name>", options);
                 }
 
-                System.err.println("Missing SoapUI project file..");
+                System.err.println("Missing SoapUI project file and/or environment name");
                 return false;
             }
 
             setProjectFile(args[0]);
+            setEnvironment(args[1]);
         }
 
         return processCommandLine(cmd);
@@ -221,6 +222,11 @@ public abstract class AbstractSoapUIRunner implements CmdLineRunner {
     @Override
     public String getProjectFile() {
         return projectFile;
+    }
+
+    @Override
+    public String getProjectEnvironment() {
+        return projectEnvironment;
     }
 
     /*
@@ -302,6 +308,10 @@ public abstract class AbstractSoapUIRunner implements CmdLineRunner {
 
     public void setProjectFile(String projectFile) {
         this.projectFile = projectFile;
+    }
+
+    public void setEnvironment(String environment) {
+        this.projectEnvironment = environment;
     }
 
     /**

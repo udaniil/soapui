@@ -21,6 +21,8 @@ import org.apache.log4j.Logger;
 public interface CmdLineRunner {
     public String getProjectFile();
 
+    public String getProjectEnvironment();
+
     public String getSettingsFile();
 
     public String getOutputFolder();
